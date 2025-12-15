@@ -5,511 +5,706 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Math Module 5 Review</title>
   <style>
-    body { font-family: "Comic Sans MS", "Comic Neue", Arial, sans-serif; background: #f0f8ff; margin: 0; padding: 0; overflow-x: hidden; }
-    header {
-      background: linear-gradient(90deg, #0074d9, #39c0ed);
-      color: white;
-      padding: 0.6rem 1.2rem;
-      text-align: center;
-      font-size: 1.6rem;
-      font-weight: bold;
-      letter-spacing: 1px;
+    :root {
+      --primary: #0074d9;
+      --card-bg: #ffffff;
+      --text: #333;
     }
+
+    body { 
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif; 
+      /* Solid blue background matching the lettering */
+      background: linear-gradient(135deg, #0074d9 0%, #005fa3 100%);
+      color: var(--text);
+      margin: 0; 
+      padding: 0; 
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
     .container {
       max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      margin: 2rem auto;
+      background: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      min-height: 50vh;
       position: relative;
-      z-index: 1;
+      z-index: 10;
     }
-    .hidden { display: none; }
-    button {
-      background: #0074d9;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      margin: 8px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background 0.2s;
-    }
-    button:hover { background: #005fa3; }
-    .feedback { margin-top: 1rem; font-weight: bold; font-size: 1.2rem; }
-    .correct { color: #28a745; }
-    .incorrect { color: #dc3545; }
-    .score { font-size: 1.3rem; margin-top: 1rem; font-weight: bold; }
-    .message { font-size: 1.1rem; margin-top: 0.5rem; font-style: italic; }
-    .progress { font-size: 1rem; margin-bottom: 0.3rem; font-weight: bold; }
-    .progress-bar-container {
-      background: #e0e0e0;
-      border-radius: 10px;
-      overflow: hidden;
-      height: 18px;
-      margin-bottom: 1rem;
-    }
-    .progress-bar {
-      background: linear-gradient(90deg, #39c0ed, #28a745);
-      height: 100%;
-      width: 0%;
-      transition: width 0.4s ease;
-    }
-    #q-image {
-      max-width: 100%;
-      height: auto;
-      display: none;
-      margin: 0 0 10px 0;
-      border: 1px dashed #bcd;
-      border-radius: 10px;
-      padding: 4px;
-      background: #f7fbff;
-    }
-    #start-screen { margin-top: 0.2rem; text-align: center; }
 
-    /* Confetti canvas covers the page but stays behind content */
-    #confetti-canvas {
-      position: fixed;
-      pointer-events: none;
-      top: 0;
-      left: 0;
+    h1 { text-align: center; color: var(--primary); letter-spacing: 1px; margin-top: 0; }
+
+    /* VISUAL CONTAINER */
+    .visual-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: #fff; 
+      border-radius: 10px;
+    }
+
+    /* Questions & Options */
+    h2 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #2c3e50; }
+    
+    .question-header { display: flex; align-items: flex-start; gap: 10px; }
+    
+    .options-grid { display: grid; gap: 15px; }
+
+    button.answer-btn {
+      background: white;
+      color: var(--primary);
+      border: 3px solid #e0e0e0;
+      padding: 15px;
+      border-radius: 15px;
+      font-size: 1.2rem;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      cursor: pointer;
+      text-align: left;
       width: 100%;
-      height: 100%;
-      z-index: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+      box-shadow: 0 4px 0 #e0e0e0;
+      
+      /* Fix for cut-off text */
+      white-space: normal; 
+      word-wrap: break-word;
+      min-height: 60px;
+    }
+
+    button.answer-btn:hover:not(:disabled) { 
+      background: #f0f8ff; 
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #b3d7ff;
+    }
+    
+    button.answer-btn.selected { 
+      background: #cce5ff; 
+      border-color: #004085; 
+      font-weight: bold; 
+      box-shadow: 0 4px 0 #004085;
+    }
+    
+    button.correct { background-color: #d4edda; border-color: #28a745; color: #155724; box-shadow: 0 4px 0 #28a745; }
+    button.incorrect { background-color: #f8d7da; border-color: #dc3545; color: #721c24; box-shadow: 0 4px 0 #dc3545; }
+
+    /* Controls */
+    .controls { margin-top: 30px; text-align: right; }
+    
+    button.action-btn {
+      background: var(--primary); color: white; border: none;
+      padding: 15px 30px; border-radius: 12px; font-size: 1.2rem; cursor: pointer;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-shadow: 0 4px 0 #005fa3;
+      transition: transform 0.1s;
+    }
+    button.action-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 #005fa3; }
+    button.action-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #005fa3; }
+    button.action-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+    
+    /* Start Screen */
+    .start-grid { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+    .start-btn { 
+      background: var(--primary); color: white; padding: 20px 40px; border:none; 
+      border-radius:15px; cursor:pointer; font-size:1.3rem;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-shadow: 0 5px 0 #005fa3;
+      transition: transform 0.1s;
+    }
+    .start-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 0 #005fa3; }
+    
+    .speak-btn { background:none; border:2px solid #ccc; border-radius:50%; cursor:pointer; font-size:1.4rem; padding: 8px 12px; min-width: 45px; }
+    .speak-btn-mini { font-size: 1.2rem; cursor: pointer; padding-left: 10px; }
+
+    .hidden { display: none !important; }
+    .feedback-box { margin-top: 20px; padding: 20px; border-radius: 12px; display: none; font-size: 1.1rem; border: 2px solid transparent; }
+    
+    /* Progress Bar */
+    .progress-bar { height: 12px; background: #e9ecef; border-radius: 6px; margin-bottom: 25px; overflow:hidden; }
+    .progress-fill { height: 100%; background: #28a745; width: 0%; transition: width 0.3s; }
+
+    #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; }
+
+    @media(max-width: 600px) {
+      .container { margin: 10px; padding: 1.5rem; }
+      h1 { font-size: 1.5rem; }
+      button.answer-btn { font-size: 1rem; padding: 12px; }
     }
   </style>
 </head>
 <body>
-  <header>📘 Math Module 5 Review</header>
+
   <canvas id="confetti-canvas"></canvas>
+
   <div class="container">
+    <h1>Math Module 5 Review</h1>
+    
     <div id="start-screen">
-      <h2>Welcome! Pick a Test Form:</h2>
-      <button onclick="startTest('A')">Form A</button>
-      <button onclick="startTest('B')">Form B</button>
+      <p style="text-align:center; font-size: 1.2rem; margin-bottom: 30px;">Select a test form to begin:</p>
+      <div class="start-grid">
+        <button class="start-btn" onclick="app.startTest('A')">Form A</button>
+        <button class="start-btn" onclick="app.startTest('B')">Form B</button>
+        <button class="start-btn" onclick="app.startTest('C')">Form C</button>
+      </div>
     </div>
 
     <div id="quiz-screen" class="hidden">
-      <p class="progress" id="progress"></p>
-      <div class="progress-bar-container">
-        <div class="progress-bar" id="progress-bar"></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div style="display:flex; justify-content:space-between; color:#666; font-size:1rem; margin-bottom:10px; font-weight:bold;">
+        <span id="progress-text"></span>
+        <span id="score-text"></span>
       </div>
-      <img id="q-image" alt="Question diagram"/>
-      <h2 id="question-text"></h2>
-      <div id="answers"></div>
-      <div class="feedback" id="feedback"></div>
-      <button id="next-btn" class="hidden" onclick="nextQuestion()">Next Question ➡️</button>
+
+      <div id="visual-container" class="visual-container hidden"></div>
+
+      <div class="question-header">
+        <h2 id="question-text"></h2>
+        <button class="speak-btn" onclick="app.speakCurrentQuestion()" aria-label="Read Question">🔊</button>
+      </div>
+
+      <div id="answers" class="options-grid"></div>
+      <div id="feedback" class="feedback-box"></div>
+
+      <div class="controls">
+        <button id="submit-btn" class="action-btn" onclick="app.submitAnswer()" disabled>Submit Answer</button>
+        <button id="next-btn" class="action-btn hidden" onclick="app.nextQuestion()">Next Question ➡️</button>
+      </div>
     </div>
 
-    <div id="end-screen" class="hidden">
-      <h2>🎉 Test Complete!</h2>
-      <p class="score" id="final-score"></p>
-      <p class="score" id="percent-score"></p>
-      <p class="message" id="performance-message"></p>
-      <button onclick="restart()">🔄 Try Again</button>
+    <div id="end-screen" class="hidden" style="text-align:center;">
+      <h2 id="end-title">Test Complete!</h2>
+      <p id="final-percent" style="font-size: 4rem; font-weight: bold; color:var(--primary); margin:10px 0;">0%</p>
+      <p id="final-score" style="font-size: 1.4rem; margin-top:0; color:#555;"></p>
+      <p id="final-msg" style="font-size: 1.5rem; margin-top:20px; font-weight:bold; color: #28a745;"></p>
+      <br><br>
+      <button class="action-btn" onclick="app.restart()">Return to Menu</button>
     </div>
   </div>
 
-  <audio id="ding-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-  <audio id="buzz-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
 <script>
+/** * VISUAL GENERATORS (SVG) */
+function drawAreaModel(sideLabel, topLabel1, topLabel2, inner1, inner2) {
+  const fmt = (txt) => txt ? txt : "";
+  return `
+  <svg width="340" height="160" viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg">
+    <rect x="60" y="50" width="240" height="90" fill="white" stroke="black" stroke-width="2.5"/>
+    <line x1="180" y1="50" x2="180" y2="140" stroke="black" stroke-width="2.5"/>
+    <text x="120" y="40" font-family="Comic Sans MS, Comic Sans, cursive" font-size="22" text-anchor="middle" fill="black" font-weight="bold">${topLabel1}</text>
+    <text x="240" y="40" font-family="Comic Sans MS, Comic Sans, cursive" font-size="22" text-anchor="middle" fill="black" font-weight="bold">${topLabel2}</text>
+    <text x="45" y="100" font-family="Comic Sans MS, Comic Sans, cursive" font-size="22" text-anchor="end" fill="black" font-weight="bold">${sideLabel}</text>
+    <text x="120" y="105" font-family="Comic Sans MS, Comic Sans, cursive" font-size="20" text-anchor="middle" fill="#333">${fmt(inner1)}</text>
+    <text x="240" y="105" font-family="Comic Sans MS, Comic Sans, cursive" font-size="20" text-anchor="middle" fill="#333">${fmt(inner2)}</text>
+  </svg>`;
+}
+
+function drawBlocks(rows, h, t, o) {
+  let svg = "";
+  let y = 10;
+  for(let i=0; i<rows; i++) {
+    let x = 10;
+    for(let j=0; j<h; j++) {
+      svg += `<rect x="${x}" y="${y}" width="40" height="40" fill="#e0e0e0" stroke="black" stroke-width="1.5"/>
+              <line x1="${x+10}" y1="${y}" x2="${x+10}" y2="${y+40}" stroke="black" stroke-opacity="0.2"/>
+              <line x1="${x+20}" y1="${y}" x2="${x+20}" y2="${y+40}" stroke="black" stroke-opacity="0.2"/>
+              <line x1="${x+30}" y1="${y}" x2="${x+30}" y2="${y+40}" stroke="black" stroke-opacity="0.2"/>
+              <line x1="${x}" y1="${y+10}" x2="${x+40}" y2="${y+10}" stroke="black" stroke-opacity="0.2"/>
+              <line x1="${x}" y1="${y+20}" x2="${x+40}" y2="${y+20}" stroke="black" stroke-opacity="0.2"/>
+              <line x1="${x}" y1="${y+30}" x2="${x+40}" y2="${y+30}" stroke="black" stroke-opacity="0.2"/>`;
+      x += 45;
+    }
+    for(let j=0; j<t; j++) {
+      svg += `<rect x="${x}" y="${y}" width="10" height="40" fill="#e0e0e0" stroke="black" stroke-width="1.5"/>`;
+      for(let k=10; k<40; k+=10) svg += `<line x1="${x}" y1="${y+k}" x2="${x+10}" y2="${y+k}" stroke="black" stroke-opacity="0.2"/>`;
+      x += 15;
+    }
+    for(let j=0; j<o; j++) {
+      svg += `<rect x="${x}" y="${y+30}" width="10" height="10" fill="#e0e0e0" stroke="black" stroke-width="1.5"/>`;
+      x += 15;
+    }
+    y += 50;
+  }
+  return `<svg width="350" height="${y}" viewBox="0 0 350 ${y}" xmlns="http://www.w3.org/2000/svg">${svg}</svg>`;
+}
+
+/** DATA SECTION */
 const tests = {
   A: [
     {
       q: "Which multiplication equation is shown by the area model?",
-      options: [
-        "10 × 18 = 180",
-        "10 × 14 = 140",
-        "8 × 16 = 128",
-        "6 × 18 = 108"
-      ],
+      svg: drawAreaModel("8", "10", "6", " ", " "), 
+      options: ["10 × 18 = 180", "10 × 14 = 140", "8 × 16 = 128", "6 × 18 = 108"],
       answer: "8 × 16 = 128",
-      image: "assets/MM5A1.png"
+      explanation: "The height is 8. The width is split into 10 + 6 = 16. Total area is 8 × 16 = 128."
     },
     {
-      q: "What is the product?\n24 × 9",
-      options: ["189","216","276","309"],
-      answer: "216"
+      q: "What is the product? 24 × 9",
+      options: ["189", "216", "276", "309"],
+      answer: "216",
+      explanation: "20×9=180, 4×9=36. Total 216."
     },
     {
-      q: "What is the product?\n159 × 5",
-      options: ["555","695","755","795"],
-      answer: "795"
+      q: "What is the product? 159 × 5",
+      options: ["555", "695", "755", "795"],
+      answer: "795",
+      explanation: "100×5=500, 50×5=250, 9×5=45. Total 795."
     },
     {
       q: "What is the product of 8 × 1,247?",
-      options: ["9,976","9,876","10,476","10,976"],
-      answer: "9,976"
+      options: ["9,976", "9,876", "10,476", "10,976"],
+      answer: "9,976",
+      explanation: "8×1000=8000, 8×200=1600, 8×40=320, 8×7=56. Total 9,976."
     },
     {
       q: "Which of these uses expanded form and the Distributive Property to find 7 × 53?",
-      options: [
-        "(7 × 50) + (3)",
-        "(7 × 5) + (7 × 3)",
-        "(7 × 50) + (7 × 3)",
-        "(7 × 5) + (7 × 3 × 10)"
-      ],
-      answer: "(7 × 50) + (7 × 3)"
+      options: ["(7 × 50) + (3)", "(7 × 5) + (7 × 3)", "(7 × 50) + (7 × 3)", "(7 × 5) + (7 × 3 × 10)"],
+      answer: "(7 × 50) + (7 × 3)",
+      explanation: "53 breaks into 50 + 3."
     },
     {
-      q: "A bookshelf has 3 shelves. There are 4 sports books and 13 mystery books on each shelf.\nHow many sports and mystery books are on the bookshelf?",
-      options: ["68","51","39","12"],
-      answer: "51"
+      q: "A bookshelf has 3 shelves. There are 4 sports books and 13 mystery books on each shelf. How many sports and mystery books are on the bookshelf?",
+      options: ["68", "51", "39", "12"],
+      answer: "51",
+      explanation: "17 books per shelf × 3 shelves = 51."
     },
     {
-      q: "What numbers will complete the area model to show 7 × 502?\nThe three blanks on the model, in order from top left to bottom right, should be—",
-      options: [
-        "50----350----14",
-        "500----3,500----14",
-        "70----350----2",
-        "502----7----3,514"
-      ],
-      answer: "500----3,500----14",
-      image: "assets/MM5A7.png"
+      q: "What numbers will complete the area model to show 7 × 502?",
+      svg: drawAreaModel("7", "500", "2", "", ""),
+      options: ["3,500 and 14", "350 and 14", "350 and 2", "3,500 and 7"],
+      answer: "3,500 and 14",
+      explanation: "7×500 = 3,500. 7×2 = 14."
     },
     {
       q: "What is the product of 6 × 8,400?",
-      options: ["48,000","50,400","52,800","53,400"],
-      answer: "50,400"
+      options: ["50,400", "48,000", "52,800", "53,400"],
+      answer: "50,400",
+      explanation: "6×8000=48000, 6×400=2400. Sum = 50,400."
     },
     {
       q: "When using partial products to find 8 × 24, which set of partial products is correct?",
-      options: ["80 + 24","16 + 24","160 + 32","200 + 42"],
-      answer: "160 + 32"
+      options: ["160 + 32", "80 + 24", "16 + 24", "200 + 42"],
+      answer: "160 + 32",
+      explanation: "8×20=160, 8×4=32."
     },
     {
       q: "What is the product of 3 × 61?",
       options: ["183","168","181","204"],
-      answer: "183"
+      answer: "183",
+      explanation: "3×60=180, 3×1=3."
+    },
+    { 
+      q: "The base-ten blocks below show a multiplication equation. (3 groups of 1 hundred, 2 tens, and 1 one)",
+      svg: drawBlocks(3, 1, 2, 1),
+      options: ["3 × 121 = 363", "3 × 110 = 330", "3 × 111 = 333", "3 × 211 = 633"], 
+      answer: "3 × 121 = 363", 
+      explanation: "3 rows of 121 equals 363."
     },
     {
-      q: "The base-ten blocks below show a multiplication equation. (3 groups of 1 hundred, 2 tens, and 1 one)\nWhich equation do they represent?",
-      options: [
-        "3 × 110 = 330",
-        "3 × 111 = 333",
-        "3 × 121 = 363",
-        "3 × 211 = 633"
-      ],
-      answer: "3 × 121 = 363",
-      image: "assets/MM5A11.png"
+      q: "A display at a store contains 5 rows of 24 fruit drink bottles and 8 rows of 12 water bottles. How many total bottles are on the display?",
+      options: ["216", "132", "144", "360"],
+      answer: "216",
+      explanation: "120 fruit + 96 water = 216."
     },
     {
-      q: "A display at a store contains 5 rows of 24 fruit drink bottles and 8 rows of 12 water bottles.\nHow many fruit drink and water bottles does the display contain?",
-      options: ["132","144","216","360"],
-      answer: "216"
+      q: "A playhouse on a school’s playground has 2 levels. The first level is 8 feet off the ground. The second level is 14 feet higher than the first level. A tree on the playground is 2 times as tall as the playhouse. How tall is the tree?",
+      options: ["44 feet", "20 feet","32 feet","40 feet"],
+      answer: "44 feet",
+      explanation: "Level 2 is 22ft (8+14). Tree is 44ft (22×2)."
     },
     {
-      q: "A playhouse on a school’s playground has 2 levels. The first level is 8 feet off the ground. The second level is 14 feet higher than the first level. A tree on the playground is 2 times as tall as the playhouse.\nHow many feet tall is the tree?",
-      options: ["20 feet","44 feet","32 feet","40 feet"],
-      answer: "44 feet"
+      q: "Marley is packing boxes with cans of paint to be used with an art project. She has 80 cans of paint, and each box holds 8 cans of paint. Marley packed 6 boxes. Which equation shows how many cans of paint (p) are left?",
+      options: ["80 − 8 × 6 = p", "80 − 8 × 4 = p", "80 − 8 − 6 = p", "80 − 8 − 2 × 6 = p"],
+      answer: "80 − 8 × 6 = p",
+      explanation: "Start with 80, subtract the packed cans (6 boxes of 8)."
     },
     {
-      q: "Marley is packing boxes with cans of paint to be used with an art project. She has 80 cans of paint, and each box holds 8 cans of paint. Marley packed 6 boxes. She needs to know how many cans of paint she has left.\nWhich equation shows how many cans of paint, p, are left?",
-      options: [
-        "80 − 8 × 4 = p",
-        "80 − 8 × 6 = p",
-        "80 − 8 − 6 = p",
-        "80 − 8 − 2 × 6 = p"
-      ],
-      answer: "80 − 8 × 6 = p"
-    },
-    {
-      q: "Marley is packing boxes with cans of paint to be used with an art project. She has 80 cans of paint, and each box holds 8 cans of paint. Marley packed 6 boxes. She needs to know how many cans of paint she has left.\nHow many cans of paint does Marley still need to pack?",
-      options: ["24 cans","32 cans","40 cans","48 cans"],
-      answer: "32 cans"
+      q: "Marley is packing boxes with cans of paint to be used with an art project. She has 80 cans of paint, and each box holds 8 cans of paint. Marley packed 6 boxes. How many cans of paint does Marley still need to pack?",
+      options: ["32 cans", "24 cans", "40 cans","48 cans"],
+      answer: "32 cans",
+      explanation: "6×8=48 packed. 80-48=32 left."
     }
   ],
   B: [
     {
       q: "Which multiplication equation is shown by the area model?",
-      options: [
-        "7 × 18 = 126",
-        "8 × 17 = 136",
-        "10 × 15 = 150",
-        "10 × 17 = 170"
-      ],
+      svg: drawAreaModel("7", "10", "8", " ", " "),
+      options: ["7 × 18 = 126", "8 × 17 = 136", "10 × 15 = 150", "10 × 17 = 170"],
       answer: "7 × 18 = 126",
-      image: "assets/MM5B1.png"
+      explanation: "Height 7. Width 10+8=18. Area 126."
     },
     {
-      q: "What is the product?\n41 × 8",
-      options: ["248","328","368","408"],
-      answer: "328"
+      q: "What is the product? 41 × 8",
+      options: ["328", "248", "368", "408"],
+      answer: "328",
+      explanation: "8×40=320, 8×1=8."
     },
     {
-      q: "What is the product?\n146 × 6",
-      options: ["646","776","846","876"],
-      answer: "876"
+      q: "What is the product? 146 × 6",
+      options: ["876", "646", "776", "846"],
+      answer: "876",
+      explanation: "600 + 240 + 36 = 876."
     },
     {
       q: "What is the product of 5 × 1,327?",
-      options: ["5,635","6,375","6,635","7,635"],
-      answer: "6,635"
+      options: ["6,635", "5,635", "6,375", "7,635"],
+      answer: "6,635",
+      explanation: "5000+1500+100+35."
     },
     {
       q: "Which of these uses expanded form and the Distributive Property to find 3 × 49?",
-      options: [
-        "(3 × 40) + (9)",
-        "(3 × 4) + (3 × 9)",
-        "(3 × 40) + (3 × 9)",
-        "(3 × 4) + (3 × 9 × 10)"
-      ],
-      answer: "(3 × 40) + (3 × 9)"
+      options: ["(3 × 40) + (3 × 9)", "(3 × 40) + (9)", "(3 × 4) + (3 × 9)", "(3 × 4) + (3 × 9 × 10)"],
+      answer: "(3 × 40) + (3 × 9)",
+      explanation: "49 is 40 + 9."
     },
     {
-      q: "There are 4 rows of chairs in a classroom. There are 2 teacher chairs and 13 student chairs in each row.\nHow many teacher and student chairs are in the classroom?",
-      options: ["8","52","60","104"],
-      answer: "60"
+      q: "There are 4 rows of chairs in a classroom. There are 2 teacher chairs and 13 student chairs in each row. How many total chairs?",
+      options: ["60", "8", "52", "104"],
+      answer: "60",
+      explanation: "4 × 15 = 60."
     },
-    {
-      q: "What numbers will complete the area model to show 2 × 906?\nThe three blanks on the model, in order from top left to bottom right, should be—",
-      options: [
-        "90, 180, 12",
-        "900, 1,800, 12",
-        "906, 2, 1,812",
-        "9, 180, 12"
-      ],
-      answer: "900, 1,800, 12",
-      image: "assets/MM5B7.png"
+    { 
+      q: "What numbers will complete the area model to show 2 × 906?", 
+      svg: drawAreaModel("2", "900", "6", "", ""),
+      options: ["1,800 and 12", "180 and 12", "900 and 2", "1,800 and 6"], 
+      answer: "1,800 and 12", 
+      explanation: "Top is 900 and 6. 2×900=1800, 2×6=12." 
     },
     {
       q: "What is the product of 9 × 3,500?",
-      options: ["27,000","28,500","30,500","31,500"],
-      answer: "31,500"
+      options: ["31,500", "27,000", "28,500", "30,500"],
+      answer: "31,500",
+      explanation: "9×35=315, then add two zeros."
     },
     {
       q: "Which statement about 6 × 19 is true?",
-      options: [
-        "The tens product is 50, the ones product is 49, and the total is 99.",
-        "The tens product is 60, the ones product is 54, and the total is 114.",
-        "The tens product is 40, the ones product is 24, and the total is 64.",
-        "The tens product is 16, the ones product is 8, and the total is 168."
-      ],
-      answer: "The tens product is 60, the ones product is 54, and the total is 114."
+      options: ["The tens product is 60, the ones product is 54, and the total is 114.", "The tens product is 50, ones product is 15, and the total is 65", "The tens product is 70, the ones product is 54, and the total is 124", "The tens product is 7, the ones product is 15, and the total is 22"],
+      answer: "The tens product is 60, the ones product is 54, and the total is 114.",
+      explanation: "6×10=60, 6×9=54."
     },
     {
       q: "What is the product of 4 × 42?",
-      options: ["126","148","160","168"],
-      answer: "168"
+      options: ["168", "126", "148", "160"],
+      answer: "168",
+      explanation: "160 + 8 = 168."
+    },
+    { 
+      q: "The base-ten blocks below show a multiplication equation. (4 groups of 2 hundreds, 1 ten, and 1 one)",
+      svg: drawBlocks(4, 2, 1, 1),
+      options: ["4 × 211 = 844", "4 × 121 = 484", "4 × 112 = 448", "4 × 221 = 884"], 
+      answer: "4 × 211 = 844", 
+      explanation: "4 rows of 211." 
     },
     {
-      q: "The base-ten blocks below show a multiplication equation. (4 groups of 2 hundreds, 1 ten, and 1 one)\nWhich equation do they represent?",
-      options: [
-        "4 × 211 = 844",
-        "4 × 112 = 448",
-        "4 × 121 = 484",
-        "4 × 221 = 884"
-      ],
-      answer: "4 × 211 = 844",
-      image: "assets/MM5B11.png"
+      q: "An art teacher displays 5 rows of 11 paintings and 6 rows of 21 drawings. How many total paintings and drawings are there?",
+      options: ["181", "166", "191", "211"],
+      answer: "181",
+      explanation: "55 paintings + 126 drawings = 181."
     },
     {
-      q: "An art teacher displays 5 rows of 11 paintings and 6 rows of 21 drawings.\nHow many paintings and drawings does the art teacher display?",
-      options: ["166","181","191","211"],
-      answer: "181"
+      q: "Students are watching a school play. There are 12 fourth grade students in the first row and 9 in the second. Third graders are 3 times this amount. How many third graders are there?",
+      options: ["63", "21", "42", "72"],
+      answer: "63",
+      explanation: "(12+9)×3 = 21×3 = 63."
     },
     {
-      q: "Students are watching a school play. There are 12 fourth grade students sitting in the first row and 9 fourth grade students sitting in the second row. There are 3 times as many third-grade students sitting in these rows.\nHow many third-grade students are sitting in these rows?",
-      options: ["21","42","63","72"],
-      answer: "63"
+      q: "Paolo has 96 rocks. He fills 6 aquariums with 12 rocks each. Which equation shows rocks left (r)?",
+      options: ["96 − 12 × 6 = r", "96 − 12 × 2 = r", "96 - 12 - 6 = r", "96 − 12 − 2 × 6 = r"],
+      answer: "96 − 12 × 6 = r",
+      explanation: "Total - (Groups × Amount)."
     },
     {
-      q: "Paolo is filling small aquariums with colorful rocks. He has 96 rocks, and each aquarium gets 12 rocks. Paolo fills 6 aquariums with rocks. He needs to know how many rocks he has left.\nWhich equation shows how many rocks, r, are left?",
-      options: [
-        "96 − 12 × 2 = r",
-        "96 − 12 × 6 = r",
-        "96 − 12 − 6 = r",
-        "96 − 12 − 2 × 6 = r"
-      ],
-      answer: "96 − 12 × 6 = r"
+      q: "Paolo has 96 rocks. He fills 6 aquariums with 12 rocks each. How many rocks are left?",
+      options: ["24 rocks", "18 rocks", "30 rocks", "36 rocks"],
+      answer: "24 rocks",
+      explanation: "96 - 72 = 24."
+    }
+  ],
+  C: [
+    {
+      q: "Which multiplication equation is shown by this area model?",
+      svg: drawAreaModel("4", "10", "5", "40", "20"),
+      options: ["4 × 15 = 60", "4 × 10 = 40", "5 × 14 = 70", "15 × 40 = 600"],
+      answer: "4 × 15 = 60",
+      explanation: "Height 4. Width 15. Total area 60."
     },
     {
-      q: "Paolo is filling small aquariums with colorful rocks. He has 96 rocks, and each aquarium gets 12 rocks. Paolo fills 6 aquariums with rocks. He needs to know how many rocks he has left.\nHow many rocks does Paolo have left?",
-      options: ["24 rocks","18 rocks","30 rocks","36 rocks"],
-      answer: "24 rocks"
+      q: "What is the product? 47 × 6",
+      options: ["282", "242", "302", "262"],
+      answer: "282",
+      explanation: "240 + 42 = 282."
+    },
+    {
+      q: "What is the product? 531 × 3",
+      options: ["1,593", "1,531", "1,693", "1,503"],
+      answer: "1,593",
+      explanation: "1500 + 90 + 3."
+    },
+    {
+      q: "What is the product of 4 × 2,108?",
+      options: ["8,432", "8,408", "8,032", "8,832"],
+      answer: "8,432",
+      explanation: "8000 + 400 + 32."
+    },
+    {
+      q: "Which of these uses expanded form and the Distributive Property to find 4 × 68?",
+      options: ["(4 × 60) + (4 × 8)", "(4 × 6) + (4 × 8)", "(4 × 60) + 8", "(4 × 6) + (8 × 10)"],
+      answer: "(4 × 60) + (4 × 8)",
+      explanation: "68 is 60 + 8."
+    },
+    {
+      q: "A bakery has 5 trays. 6 chocolate and 12 vanilla cupcakes on each. How many total cupcakes are there?",
+      options: ["90", "80", "18", "30"],
+      answer: "90",
+      explanation: "5 × (6+12) = 90."
+    },
+    {
+      q: "What numbers will complete the area model to show 5 × 320?",
+      svg: drawAreaModel("5", "300", "20", "", ""),
+      options: ["1,500 and 20", "305 and 20", "1,500 and 100", "150 and 20"],
+      answer: "1,500 and 100",
+      explanation: "5×300=1500 (inner), 5×20=100 (inner). Missing: 1,500 and 100."
+    },
+    {
+      q: "What is the product of 7 × 5,200?",
+      options: ["36,400", "35,400", "3,640", "36,000"],
+      answer: "36,400",
+      explanation: "35,000 + 1,400."
+    },
+    {
+      q: "When using partial products to find 4 × 35, which set is correct?",
+      options: ["120 + 20", "12 + 20", "100 + 20", "120 + 5"],
+      answer: "120 + 20",
+      explanation: "4×30=120, 4×5=20."
+    },
+    { 
+      q: "Imagine Base-Ten Blocks showing: 5 rows. Each row has 1 Hundred, 3 Tens, and 2 Ones.",
+      svg: drawBlocks(5, 1, 3, 2),
+      options: ["5 × 132 = 660", "5 × 123 = 615", "5 × 130 = 650", "3 × 132 = 396"], 
+      answer: "5 × 132 = 660", 
+      explanation: "5 rows of 132."
+    },
+    {
+      q: "A cinema has 4 rows of 15 adults and 3 rows of 10 children. How many people total?",
+      options: ["90", "60", "70", "100"],
+      answer: "90",
+      explanation: "60 adults + 30 children."
+    },
+    {
+      q: "Mrs. Lee has 50 pencils. She fills 4 cups with 8 pencils each. Which equation shows how many pencils are left?",
+      options: ["50 - 4 × 8 = p", "50 - 4 - 8 = p", "50 + 4 × 8 = p", "4 × 8 - 50 = p"],
+      answer: "50 - 4 × 8 = p",
+      explanation: "Total - Used."
+    },
+    {
+      q: "Which statement about 5 × 28 is true?",
+      options: ["The tens product is 100, the ones product is 40, total 140.", "The tens product is 50, ones is 20, total 70.", "The tens product is 20, ones is 40, total 60.", "The tens product is 10, ones is 8, total 18."],
+      answer: "The tens product is 100, the ones product is 40, total 140.",
+      explanation: "5 × 20 (tens) = 100. 5 × 8 (ones) = 40. 100 + 40 = 140."
+    },
+    {
+      q: "Mrs. Lee has 50 pencils. She fills 4 cups with 8 pencils each. How many pencils does she have left?",
+      options: ["18", "24", "12", "32"],
+      answer: "18",
+      explanation: "4 cups × 8 pencils = 32 pencils used. 50 - 32 = 18."
+    },
+    {
+      q: "A giraffe is 18 feet tall. A building is 3 times as tall as the giraffe. How tall is the building?",
+      options: ["54 feet", "36 feet", "48 feet", "64 feet"],
+      answer: "54 feet",
+      explanation: "18 × 3 = 54."
     }
   ]
 };
 
-let currentTest = [];
-let currentIndex = 0;
-let score = 0;
+const app = {
+  currentTest: [],
+  currentIndex: 0,
+  score: 0,
+  selectedAnswer: null,
+  
+  startTest: function(form) {
+    if(!tests[form]) return;
+    this.currentTest = JSON.parse(JSON.stringify(tests[form]));
+    
+    // Randomize Questions & Answers
+    this.currentTest.sort(() => Math.random() - 0.5);
+    this.currentTest.forEach(q => q.options.sort(() => Math.random() - 0.5));
+    
+    this.currentIndex = 0;
+    this.score = 0;
+    
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.add("hidden");
+    document.getElementById("quiz-screen").classList.remove("hidden");
+    this.showQuestion();
+    stopConfetti();
+  },
 
-function shuffle(array) {
-  return array.sort(() => Math.random() - 0.5);
-}
+  showQuestion: function() {
+    this.selectedAnswer = null;
+    const qObj = this.currentTest[this.currentIndex];
+    const total = this.currentTest.length;
 
-function playSound(type) {
-  const audio = (type === "correct")
-    ? document.getElementById("ding-sound")
-    : document.getElementById("buzz-sound");
-  audio.currentTime = 0;
-  audio.play();
-}
+    document.getElementById("progress-text").innerText = `Question ${this.currentIndex + 1} of ${total}`;
+    document.getElementById("score-text").innerText = `Score: ${this.score}`;
+    document.getElementById("progress-fill").style.width = `${(this.currentIndex / total) * 100}%`;
+    document.getElementById("question-text").innerText = qObj.q;
 
-function startTest(form) {
-  currentTest = JSON.parse(JSON.stringify(tests[form]));
-  currentTest = shuffle(currentTest);
-  currentTest.forEach(q => { q.options = shuffle(q.options); });
-  currentIndex = 0;
-  score = 0;
-  document.getElementById("start-screen").classList.add("hidden");
-  document.getElementById("quiz-screen").classList.remove("hidden");
-  showQuestion();
-}
-
-function showQuestion() {
-  const qObj = currentTest[currentIndex];
-  document.getElementById("progress").innerText =
-    `Question ${currentIndex + 1} of ${currentTest.length}`;
-  const percent = (currentIndex / currentTest.length) * 100;
-  document.getElementById("progress-bar").style.width = percent + "%";
-
-  const img = document.getElementById("q-image");
-  if (qObj.image) {
-    img.src = qObj.image;
-    img.style.display = "block";
-  } else {
-    img.style.display = "none";
-  }
-
-  document.getElementById("question-text").innerText = qObj.q;
-
-  const answersDiv = document.getElementById("answers");
-  answersDiv.innerHTML = "";
-  qObj.options.forEach(opt => {
-    const btn = document.createElement("button");
-    btn.innerText = opt;
-    btn.className = "answer-btn";
-    btn.onclick = () => checkAnswer(opt, qObj.answer, btn);
-    answersDiv.appendChild(btn);
-  });
-
-  document.getElementById("feedback").innerText = "";
-  document.getElementById("next-btn").classList.add("hidden");
-}
-
-function checkAnswer(selected, correct, btn) {
-  if (selected === correct) {
-    document.getElementById("feedback").innerText = "✅ Correct!";
-    document.getElementById("feedback").className = "feedback correct";
-    btn.classList.add("correct");
-    score++;
-    playSound("correct");
-  } else {
-    document.getElementById("feedback").innerText =
-      "❌ Incorrect. Correct answer: " + correct;
-    document.getElementById("feedback").className = "feedback incorrect";
-    btn.classList.add("incorrect");
-    playSound("incorrect");
-  }
-
-  Array.from(document.getElementById("answers").children)
-    .forEach(b => b.disabled = true);
-  document.getElementById("next-btn").classList.remove("hidden");
-}
-
-function nextQuestion() {
-  currentIndex++;
-  if (currentIndex < currentTest.length) {
-    showQuestion();
-  } else {
-    endTest();
-  }
-}
-
-function endTest() {
-  document.getElementById("quiz-screen").classList.add("hidden");
-  document.getElementById("end-screen").classList.remove("hidden");
-  const percent = Math.round((score / currentTest.length) * 100);
-  document.getElementById("progress-bar").style.width = "100%";
-  document.getElementById("final-score").innerText =
-    `You scored ${score} out of ${currentTest.length}.`;
-  document.getElementById("percent-score").innerText =
-    `That’s ${percent}%.`;
-
-  let message;
-  if (percent === 100) {
-    message = "🌟 Excellent work! Perfect score!";
-  } else if (percent >= 80) {
-    message = "👍 Great job! You really know this material.";
-  } else if (percent >= 60) {
-    message = "👌 Not bad! Keep practicing to improve.";
-  } else {
-    message = "💡 Keep trying! Review the lessons and practice again.";
-  }
-  document.getElementById("performance-message").innerText = message;
-
-  startConfetti();
-}
-
-function restart() {
-  document.getElementById("end-screen").classList.add("hidden");
-  document.getElementById("start-screen").classList.remove("hidden");
-  stopConfetti();
-  document.getElementById("progress-bar").style.width = "0%";
-}
-
-/* Simple confetti animation */
-const confettiCanvas = document.getElementById("confetti-canvas");
-const ctx = confettiCanvas.getContext("2d");
-let confettiPieces = [];
-let confettiAnimationId = null;
-
-function resizeCanvas() {
-  confettiCanvas.width = window.innerWidth;
-  confettiCanvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
-function createConfetti() {
-  const colors = ["#ff4136","#ff851b","#ffdc00","#2ecc40","#0074d9","#b10dc9"];
-  for (let i = 0; i < 200; i++) {
-    confettiPieces.push({
-      x: Math.random() * confettiCanvas.width,
-      y: Math.random() * confettiCanvas.height - confettiCanvas.height,
-      size: Math.random() * 6 + 2,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      speed: Math.random() * 3 + 2,
-      tilt: Math.random() * 10 - 5
-    });
-  }
-}
-
-function drawConfetti() {
-  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-  confettiPieces.forEach(p => {
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.ellipse(p.x, p.y, p.size, p.size / 2, p.tilt, 0, 2 * Math.PI);
-    ctx.fill();
-    p.y += p.speed;
-    if (p.y > confettiCanvas.height) {
-      p.y = -10;
-      p.x = Math.random() * confettiCanvas.width;
+    // SVG Rendering
+    const visualContainer = document.getElementById("visual-container");
+    visualContainer.innerHTML = "";
+    if (qObj.svg) {
+      visualContainer.classList.remove("hidden");
+      visualContainer.innerHTML = qObj.svg;
+    } else {
+      visualContainer.classList.add("hidden");
     }
-  });
-  confettiAnimationId = requestAnimationFrame(drawConfetti);
-}
+
+    document.getElementById("feedback").style.display = "none";
+    document.getElementById("submit-btn").disabled = true;
+    document.getElementById("submit-btn").classList.remove("hidden");
+    document.getElementById("next-btn").classList.add("hidden");
+
+    const answersDiv = document.getElementById("answers");
+    answersDiv.innerHTML = "";
+    
+    qObj.options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "answer-btn";
+      btn.innerHTML = `<span>${opt}</span><span class="speak-btn-mini" onclick="app.speakText('${opt}', event)">🔊</span>`;
+      btn.onclick = (e) => {
+        if(e.target.classList.contains('speak-btn-mini')) return;
+        this.selectAnswer(opt, btn);
+      };
+      answersDiv.appendChild(btn);
+    });
+  },
+
+  selectAnswer: function(answer, btn) {
+    this.selectedAnswer = answer;
+    document.querySelectorAll(".answer-btn").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    document.getElementById("submit-btn").disabled = false;
+  },
+
+  submitAnswer: function() {
+    const qObj = this.currentTest[this.currentIndex];
+    const btns = document.querySelectorAll(".answer-btn");
+    const fb = document.getElementById("feedback");
+    
+    btns.forEach(b => b.disabled = true);
+    document.getElementById("submit-btn").classList.add("hidden");
+    document.getElementById("next-btn").classList.remove("hidden");
+    document.getElementById("next-btn").focus();
+
+    let isCorrect = (this.selectedAnswer === qObj.answer);
+    
+    if (isCorrect) {
+      this.score++;
+      fb.style.backgroundColor = "#d4edda";
+      fb.style.color = "#155724";
+      fb.style.borderColor = "#c3e6cb";
+      fb.innerHTML = `<strong>✅ Correct!</strong><br>${qObj.explanation}`;
+      Array.from(btns).find(b => b.classList.contains("selected")).classList.add("correct");
+    } else {
+      fb.style.backgroundColor = "#f8d7da";
+      fb.style.color = "#721c24";
+      fb.style.borderColor = "#f5c6cb";
+      fb.innerHTML = `<strong>❌ Incorrect.</strong><br>Correct: ${qObj.answer}<br>${qObj.explanation}`;
+      Array.from(btns).find(b => b.classList.contains("selected")).classList.add("incorrect");
+    }
+    fb.style.display = "block";
+  },
+
+  nextQuestion: function() {
+    this.currentIndex++;
+    if (this.currentIndex < this.currentTest.length) {
+      this.showQuestion();
+    } else {
+      this.endTest();
+    }
+  },
+
+  endTest: function() {
+    document.getElementById("quiz-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.remove("hidden");
+    
+    const percent = Math.round((this.score / this.currentTest.length) * 100);
+    document.getElementById("final-percent").innerText = `${percent}%`;
+    document.getElementById("final-score").innerText = `(${this.score} out of ${this.currentTest.length})`;
+    
+    let msg = "";
+    if (percent === 100) msg = "🌟 Perfect Score! Amazing job!";
+    else if (percent >= 80) msg = "👍 Great work! You are ready.";
+    else if (percent >= 60) msg = "👌 Good effort. Keep practicing!";
+    else msg = "💡 Don't give up! Review the topics and try again.";
+    
+    document.getElementById("final-msg").innerText = msg;
+    if(percent >= 70) startConfetti();
+  },
+
+  restart: function() {
+    stopConfetti();
+    document.getElementById("end-screen").classList.add("hidden");
+    document.getElementById("start-screen").classList.remove("hidden");
+  },
+
+  speakCurrentQuestion: function() {
+    this.speakText(this.currentTest[this.currentIndex].q);
+  },
+
+  speakText: function(text, e) {
+    if(e) e.stopPropagation();
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(u);
+  }
+};
+
+/* CONFETTI ENGINE (Vanilla JS) */
+const canvas = document.getElementById("confetti-canvas");
+const ctx = canvas.getContext("2d");
+let particles = [];
+let animationId = null;
+
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener("resize", resize); resize();
 
 function startConfetti() {
-  confettiPieces = [];
-  createConfetti();
-  if (!confettiAnimationId) {
-    drawConfetti();
+  particles = [];
+  const colors = ["#0074d9", "#2ecc40", "#ff4136", "#ffdc00", "#b10dc9"];
+  for(let i=0; i<150; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      c: colors[Math.floor(Math.random() * colors.length)],
+      s: Math.random() * 5 + 3,
+      d: Math.random() * 5 + 2
+    });
   }
+  animate();
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    ctx.fillStyle = p.c;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2);
+    ctx.fill();
+    p.y += p.d;
+    if(p.y > canvas.height) p.y = -10;
+  });
+  animationId = requestAnimationFrame(animate);
 }
 
 function stopConfetti() {
-  if (confettiAnimationId) {
-    cancelAnimationFrame(confettiAnimationId);
-    confettiAnimationId = null;
-  }
-  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  if(animationId) cancelAnimationFrame(animationId);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 </script>
 </body>
