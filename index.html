@@ -9,11 +9,11 @@
       --primary: #0074d9;
       --card-bg: #ffffff;
       --text: #333;
+      --highlight: #fff700;
     }
 
     body { 
       font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif; 
-      /* Solid blue background matching the lettering */
       background: linear-gradient(135deg, #0074d9 0%, #005fa3 100%);
       color: var(--text);
       margin: 0; 
@@ -69,8 +69,6 @@
       align-items: center;
       transition: all 0.2s;
       box-shadow: 0 4px 0 #e0e0e0;
-      
-      /* Fix for cut-off text */
       white-space: normal; 
       word-wrap: break-word;
       min-height: 60px;
@@ -92,6 +90,13 @@
     
     button.correct { background-color: #d4edda; border-color: #28a745; color: #155724; box-shadow: 0 4px 0 #28a745; }
     button.incorrect { background-color: #f8d7da; border-color: #dc3545; color: #721c24; box-shadow: 0 4px 0 #dc3545; }
+
+    /* Highlight Class for Reading */
+    .highlight-word {
+      background-color: var(--highlight);
+      border-radius: 3px;
+      box-shadow: 0 0 5px var(--highlight);
+    }
 
     /* Controls */
     .controls { margin-top: 30px; text-align: right; }
@@ -118,8 +123,24 @@
     }
     .start-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 0 #005fa3; }
     
+    /* Resume Button Style */
+    #resume-container {
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    .resume-btn {
+      background: #ff851b; /* Orange for distinction */
+      color: white; padding: 15px 30px; border:none; 
+      border-radius:15px; cursor:pointer; font-size:1.2rem;
+      font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif;
+      box-shadow: 0 5px 0 #cc6a15;
+      transition: transform 0.1s;
+      display: inline-block;
+    }
+    .resume-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 0 #cc6a15; }
+
     .speak-btn { background:none; border:2px solid #ccc; border-radius:50%; cursor:pointer; font-size:1.4rem; padding: 8px 12px; min-width: 45px; }
-    .speak-btn-mini { font-size: 1.2rem; cursor: pointer; padding-left: 10px; }
+    .speak-btn-mini { font-size: 1.2rem; cursor: pointer; padding-left: 10px; z-index: 5; }
 
     .hidden { display: none !important; }
     .feedback-box { margin-top: 20px; padding: 20px; border-radius: 12px; display: none; font-size: 1.1rem; border: 2px solid transparent; }
@@ -145,6 +166,12 @@
     <h1>Math Module 5 Review</h1>
     
     <div id="start-screen">
+      <div id="resume-container" class="hidden">
+        <p style="margin-bottom: 10px; font-weight: bold; color: #555;">Welcome back! You have an unfinished test.</p>
+        <button class="resume-btn" onclick="app.resumeTest()">Resume Test ↩️</button>
+        <hr style="margin: 20px 0; opacity: 0.3;">
+      </div>
+
       <p style="text-align:center; font-size: 1.2rem; margin-bottom: 30px;">Select a test form to begin:</p>
       <div class="start-grid">
         <button class="start-btn" onclick="app.startTest('A')">Form A</button>
@@ -525,9 +552,51 @@ const app = {
   currentIndex: 0,
   score: 0,
   selectedAnswer: null,
+  currentForm: null,
+  
+  // Highlight tracking variables
+  speakingElement: null,
+  originalHTML: "",
+
+  init: function() {
+    this.checkSavedProgress();
+  },
+
+  checkSavedProgress: function() {
+    const saved = localStorage.getItem('mathModuleReview');
+    const resumeContainer = document.getElementById('resume-container');
+    if(saved) {
+      resumeContainer.classList.remove('hidden');
+    } else {
+      resumeContainer.classList.add('hidden');
+    }
+  },
+
+  resumeTest: function() {
+    const saved = localStorage.getItem('mathModuleReview');
+    if(!saved) return;
+    
+    const data = JSON.parse(saved);
+    this.currentTest = data.currentTest;
+    this.currentIndex = data.currentIndex;
+    this.score = data.score;
+    this.currentForm = data.currentForm;
+
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.add("hidden");
+    document.getElementById("quiz-screen").classList.remove("hidden");
+    this.showQuestion();
+    stopConfetti();
+  },
   
   startTest: function(form) {
     if(!tests[form]) return;
+    
+    // Clear old saves when starting new
+    localStorage.removeItem('mathModuleReview');
+    this.checkSavedProgress();
+
+    this.currentForm = form;
     this.currentTest = JSON.parse(JSON.stringify(tests[form]));
     
     // Randomize Questions & Answers
@@ -537,6 +606,8 @@ const app = {
     this.currentIndex = 0;
     this.score = 0;
     
+    this.saveProgress(); // Initial Save
+
     document.getElementById("start-screen").classList.add("hidden");
     document.getElementById("end-screen").classList.add("hidden");
     document.getElementById("quiz-screen").classList.remove("hidden");
@@ -544,7 +615,18 @@ const app = {
     stopConfetti();
   },
 
+  saveProgress: function() {
+    const data = {
+      currentTest: this.currentTest,
+      currentIndex: this.currentIndex,
+      score: this.score,
+      currentForm: this.currentForm
+    };
+    localStorage.setItem('mathModuleReview', JSON.stringify(data));
+  },
+
   showQuestion: function() {
+    this.resetSpeech(); // Clear any ongoing speech/highlights
     this.selectedAnswer = null;
     const qObj = this.currentTest[this.currentIndex];
     const total = this.currentTest.length;
@@ -575,7 +657,24 @@ const app = {
     qObj.options.forEach(opt => {
       const btn = document.createElement("button");
       btn.className = "answer-btn";
-      btn.innerHTML = `<span>${opt}</span><span class="speak-btn-mini" onclick="app.speakText('${opt}', event)">🔊</span>`;
+      
+      // Create separate spans for text and speaker to target text for highlight
+      const textSpan = document.createElement("span");
+      textSpan.innerText = opt;
+      textSpan.style.flex = "1";
+      
+      const speaker = document.createElement("span");
+      speaker.className = "speak-btn-mini";
+      speaker.innerText = "🔊";
+      speaker.onclick = (e) => {
+        e.stopPropagation();
+        // Pass the actual element containing the text for highlighting
+        app.speakText(opt, textSpan); 
+      };
+
+      btn.appendChild(textSpan);
+      btn.appendChild(speaker);
+
       btn.onclick = (e) => {
         if(e.target.classList.contains('speak-btn-mini')) return;
         this.selectAnswer(opt, btn);
@@ -592,6 +691,7 @@ const app = {
   },
 
   submitAnswer: function() {
+    this.resetSpeech();
     const qObj = this.currentTest[this.currentIndex];
     const btns = document.querySelectorAll(".answer-btn");
     const fb = document.getElementById("feedback");
@@ -621,8 +721,12 @@ const app = {
   },
 
   nextQuestion: function() {
+    this.resetSpeech();
     this.currentIndex++;
+    
+    // Save progress after moving to next question (or finishing)
     if (this.currentIndex < this.currentTest.length) {
+      this.saveProgress(); 
       this.showQuestion();
     } else {
       this.endTest();
@@ -630,6 +734,10 @@ const app = {
   },
 
   endTest: function() {
+    // Clear save on completion
+    localStorage.removeItem('mathModuleReview');
+    this.checkSavedProgress();
+
     document.getElementById("quiz-screen").classList.add("hidden");
     document.getElementById("end-screen").classList.remove("hidden");
     
@@ -651,19 +759,59 @@ const app = {
     stopConfetti();
     document.getElementById("end-screen").classList.add("hidden");
     document.getElementById("start-screen").classList.remove("hidden");
+    this.checkSavedProgress();
   },
 
   speakCurrentQuestion: function() {
-    this.speakText(this.currentTest[this.currentIndex].q);
+    const qText = this.currentTest[this.currentIndex].q;
+    const qElem = document.getElementById("question-text");
+    this.speakText(qText, qElem);
   },
 
-  speakText: function(text, e) {
-    if(e) e.stopPropagation();
+  // Helper to stop speech and restore original HTML text (remove highlights)
+  resetSpeech: function() {
     window.speechSynthesis.cancel();
+    if (this.speakingElement && this.originalHTML) {
+      this.speakingElement.innerHTML = this.originalHTML;
+      this.speakingElement = null;
+      this.originalHTML = "";
+    }
+  },
+
+  speakText: function(text, element) {
+    this.resetSpeech(); // Stop previous speech
+    
+    // Store state to restore later
+    this.speakingElement = element;
+    this.originalHTML = element.innerHTML;
+
     const u = new SpeechSynthesisUtterance(text);
+    
+    // "Karaoke" Logic: On boundary, highlight the specific word
+    u.onboundary = (event) => {
+      // Find the word boundary
+      const wordStart = event.charIndex;
+      let wordEnd = text.indexOf(' ', wordStart + 1);
+      if (wordEnd === -1) wordEnd = text.length;
+      
+      const before = text.substring(0, wordStart);
+      const word = text.substring(wordStart, wordEnd);
+      const after = text.substring(wordEnd);
+
+      // Inject highlight span
+      element.innerHTML = `${before}<span class="highlight-word">${word}</span>${after}`;
+    };
+
+    u.onend = () => {
+      this.resetSpeech(); // Cleanup highlights when done
+    };
+
     window.speechSynthesis.speak(u);
   }
 };
+
+/* Initialize Resume Button Check on Load */
+app.init();
 
 /* CONFETTI ENGINE (Vanilla JS) */
 const canvas = document.getElementById("confetti-canvas");
